@@ -4,6 +4,6 @@ fastapi
 uvicorn
 pillow
 python-multipart
-requests==2.31.0
+requests
 tensorflow
 numpy
