@@ -1,14 +1,16 @@
+import os
 from fastapi import FastAPI, File, UploadFile
 from torchvision import transforms
 from PIL import Image
 import torch
 import io
+from model_loader import load_model
 
 app = FastAPI()
 
 # Load your trained PyTorch model
-model_path = r"C:\Users\Salman Farid Rahman\PycharmProjects\Pytorch_model_testing\data_file\efficientnet_b0_plant_modelarc.pth"
-model = torch.load(model_path, map_location=torch.device('cpu'))  # Use 'cuda' if you have a GPU
+model_path = os.environ.get('MODEL_PATH', './data_file/efficientnet_b0_plant_modelarc.pth')
+model = load_model(model_path)
 model.eval()
 
 # Define the class labels
@@ -59,3 +61,4 @@ async def predict(file: UploadFile = File(...)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
