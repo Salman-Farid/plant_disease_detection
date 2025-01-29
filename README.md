@@ -1,4 +1,7 @@
-# ![API Server Logo](https://github.com/Salman-Farid/plant_disease_detection/blob/main/apI_server_logo.png)
+# ![FastAPI Logo](https://github.com/Salman-Farid/plant_disease_detection/blob/main/fast_api.png)
+# ![Vercel Logo](https://github.com/Salman-Farid/plant_disease_detection/blob/main/vercel.png)
+# ![Python Logo](https://github.com/Salman-Farid/plant_disease_detection/blob/main/python.png)
+
 
 ```markdown
 # Plant Disease Detection API
