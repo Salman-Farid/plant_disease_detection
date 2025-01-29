@@ -78,7 +78,6 @@ curl -X 'POST' \
 ## 📄 Model Details
 
 - **Model Type**: EfficientNet-B0 (Quantized)
-- **Model Path**: Provided in the `MODEL_PATH` environment variable.
 - **Class Labels**: The model classifies images into the following plant diseases and conditions:
   
   ```
@@ -123,6 +122,7 @@ The PlantTreatmonty mobile application utilizes this API to provide plant diseas
 - **Firebase Authentication**: Secure login and user management.
 - **Plant Care Tips**: Discover helpful tips for plant care.
 - **Responsive Design**: Optimized for various screen sizes for an improved user experience.
+- **Community Feedback**: Users can share their experiences and provide feedback to improve the plant disease detection system and overall app functionality.
 
 ---
 
@@ -133,12 +133,13 @@ The PlantTreatmonty mobile application utilizes this API to provide plant diseas
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - **PyTorch** for providing tools to deploy efficient machine learning models.
 - **FastAPI** for building the API to serve the model.
 - **Flutter Documentation** for helping create the mobile app.
 - **Firebase** for the user authentication and backend services.
+- **🌐 Vercel** – For deploying the model API server.
 
 ---
 
