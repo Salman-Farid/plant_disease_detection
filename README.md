@@ -1,4 +1,4 @@
-Here's the API documentation for the server. I've formatted most of the content in bash commands and properly included the links for the API, GitHub repositories, and Plant App:
+# ![API Server Logo](https://github.com/Salman-Farid/plant_disease_detection/blob/main/apI_server_logo.png)
 
 ```markdown
 # Plant Disease Detection API
@@ -145,5 +145,3 @@ The PlantTreatmonty mobile application utilizes this API to provide plant diseas
 
 For more detailed instructions, check the official [PlantTreatmonty GitHub Repository](https://github.com/Salman-Farid/planty) or visit the [API Documentation](https://plant-disease-detection-2-aa5x.onrender.com/docs#/default/predict_predict__post).
 ``` 
-
-This documentation includes the necessary steps to set up and run the API server, usage examples, links to the relevant repositories, and the technologies used in the project.
