@@ -41,22 +41,35 @@ preprocess = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
+@app.get("/")
+async def root():
+    return {
+        "status": "active",
+        "total_classes": len(class_labels),
+        "classes": class_labels
+    }
+
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
     # Read the image file
     image_data = await file.read()
     image = Image.open(io.BytesIO(image_data)).convert('RGB')
-
+    
     # Preprocess the image
     image = preprocess(image).unsqueeze(0)
-
+    
     # Make a prediction
     with torch.no_grad():
         outputs = model(image)
-        _, predicted = torch.max(outputs, 1)
+        probabilities = torch.nn.functional.softmax(outputs, dim=1)
+        confidence, predicted = torch.max(probabilities, 1)
         prediction = class_labels[predicted.item()]
-
-    return {"prediction": prediction}
+    
+    return {
+        "prediction": prediction,
+        "confidence": float(confidence.item()),
+        "total_classes": len(class_labels)
+    }
 
 if __name__ == "__main__":
     import uvicorn
