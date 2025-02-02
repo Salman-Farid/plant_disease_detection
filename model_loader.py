@@ -1,18 +1,19 @@
 import torch
-import os
-import requests
+import torchvision.models as models
+from torch.serialization import add_safe_globals
+from torchvision.models.efficientnet import EfficientNet
 
 def load_model(model_path):
-    if os.path.exists(model_path):
-        return torch.load(model_path, map_location=torch.device('cpu'))
-    else:
-        # If the model doesn't exist locally, download it
-        url = os.environ.get('MODEL_URL')
-        if url:
-            response = requests.get(url)
-            with open(model_path, 'wb') as f:
-                f.write(response.content)
-            return torch.load(model_path, map_location=torch.device('cpu'))
-        else:
-            raise FileNotFoundError(f"Model not found at {model_path} and MODEL_URL not set")
-
+    # Add EfficientNet to safe globals
+    add_safe_globals([EfficientNet])
+    
+    # Create a new EfficientNet model
+    model = models.efficientnet_b0(pretrained=False)
+    
+    # Modify the classifier for your number of classes (65 classes)
+    model.classifier = torch.nn.Linear(1280, 65)
+    
+    # Load the state dict
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    
+    return model
