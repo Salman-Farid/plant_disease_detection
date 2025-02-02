@@ -1,20 +1,35 @@
 import os
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from torchvision import transforms
 from PIL import Image
 import torch
 import io
 from model_loader import load_model
+from typing import List, Dict
+import logging
 
-app = FastAPI()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="Plant Disease Detection API",
+    description="API for detecting plant diseases using EfficientNet model",
+    version="1.0.0"
+)
 
 # Load your trained PyTorch model
-model_path = os.environ.get('MODEL_PATH', './data_file/efficientnet_b0_plant_modelarc.pth')
-model = load_model(model_path)
-model.eval()
+try:
+    model_path = os.environ.get('MODEL_PATH', './data_file/efficientnet_b0_plant_modelarc.pth')
+    model = load_model(model_path)
+    model.eval()
+    logger.info(f"Model loaded successfully from {model_path}")
+except Exception as e:
+    logger.error(f"Failed to load model: {str(e)}")
+    raise
 
 # Define the class labels
-class_labels = [
+class_labels: List[str] = [
     'Bitter gourd - Downy Mildew', 'Bitter gourd - Healthy', 'Bitter gourd - Jassid', 'Bitter gourd - Leaf Spot',
     'Bitter gourd - Nitrogen Deficiency', 'Bitter gourd - Nitrogen and Magnesium Deficiency',
     'Bitter gourd - Nitrogen and Potassium Deficiency', 'Bitter gourd - Potassium Deficiency',
@@ -41,36 +56,79 @@ preprocess = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
+def validate_image(image_data: bytes) -> Image.Image:
+    """Validate and open image data."""
+    try:
+        image = Image.open(io.BytesIO(image_data)).convert('RGB')
+        return image
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid image format")
+
 @app.get("/")
-async def root():
+async def root() -> Dict:
+    """Root endpoint returning API information."""
     return {
         "status": "active",
         "total_classes": len(class_labels),
-        "classes": class_labels
+        "classes": class_labels,
+        "model_path": model_path
     }
 
 @app.post("/predict/")
-async def predict(file: UploadFile = File(...)):
-    # Read the image file
-    image_data = await file.read()
-    image = Image.open(io.BytesIO(image_data)).convert('RGB')
+async def predict(file: UploadFile = File(...)) -> Dict:
+    """
+    Predict plant disease from uploaded image.
     
-    # Preprocess the image
-    image = preprocess(image).unsqueeze(0)
+    Args:
+        file: Uploaded image file
     
-    # Make a prediction
-    with torch.no_grad():
-        outputs = model(image)
-        probabilities = torch.nn.functional.softmax(outputs, dim=1)
-        confidence, predicted = torch.max(probabilities, 1)
-        prediction = class_labels[predicted.item()]
-    
-    return {
-        "prediction": prediction,
-        "confidence": float(confidence.item()),
-        "total_classes": len(class_labels)
-    }
+    Returns:
+        Dictionary containing prediction, confidence score, and total classes
+    """
+    try:
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+
+        # Read and validate the image file
+        image_data = await file.read()
+        image = validate_image(image_data)
+        
+        # Preprocess the image
+        image_tensor = preprocess(image).unsqueeze(0)
+        
+        # Make a prediction
+        with torch.no_grad():
+            outputs = model(image_tensor)
+            probabilities = torch.nn.functional.softmax(outputs, dim=1)
+            confidence, predicted = torch.max(probabilities, 1)
+            
+            # Get top 3 predictions
+            top_3_confidences, top_3_indices = torch.topk(probabilities, 3)
+            top_3_predictions = [
+                {
+                    "class": class_labels[idx.item()],
+                    "confidence": float(conf.item())
+                }
+                for idx, conf in zip(top_3_indices[0], top_3_confidences[0])
+            ]
+        
+        return {
+            "primary_prediction": {
+                "class": class_labels[predicted.item()],
+                "confidence": float(confidence.item())
+            },
+            "top_3_predictions": top_3_predictions,
+            "total_classes": len(class_labels)
+        }
+        
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Prediction error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal prediction error")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=2828)
+    port = int(os.environ.get("PORT", 2828))
+    uvicorn.run(app, host="0.0.0.0", port=port)
