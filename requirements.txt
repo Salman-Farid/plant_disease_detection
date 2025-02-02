@@ -1,8 +1,9 @@
-torch
-torchvision
-fastapi
-uvicorn
-pillow
+torch~=2.5.1
+uvicorn~=0.34.0
+fastapi~=0.115.7
+sympy~=1.13.1
+torchvision~=0.20.1
+pillow~=11.1.0
 python-multipart
 requests
 tensorflow
