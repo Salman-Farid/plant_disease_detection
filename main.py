@@ -6,6 +6,8 @@ from PIL import Image
 import torch
 import io
 
+
+
 app = FastAPI()
 
 # Load your trained PyTorch model
