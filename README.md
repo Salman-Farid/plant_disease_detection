@@ -6,6 +6,7 @@
 
 This FastAPI-based API serves a quantized PyTorch model (EfficientNet-B0) for plant disease detection. The model can classify images of plants into 66 different classes, helping users identify diseases and conditions in their plants.
 
+
 ## 🚀 Getting Started
 
 To get started with the Plant Disease Detection API, follow the steps below to set up and run the server.
